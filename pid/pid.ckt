@@ -1,0 +1,14 @@
+*
+simulator lang=spectre
+ahdl_include "pid.va"
+parameters pv = 1 kp=1 ki=0 kd=0 bypass=1 has_noise=0
+
+v1 ( in 0 ) vsource type=pwl wave=[0 0 1 0 1.01 pv 2 pv 2.01 0 3 0 3.01 pv]
+pid1 ( in out control ) pid_controller kp=kp ki=ki kd=kd bypass=bypass
+v_noise ( control n_noise ) vsource type=sine ampl=has_noise freq=30
+r1 ( n_noise out ) resistor r=1k
+c1 ( out 0 ) capacitor c=0.2m
+
+save in out control
+tran1 tran fixedstep=1m stop=4 annotate=no
+*tran1 tran step=1n stop=4 annotate=no

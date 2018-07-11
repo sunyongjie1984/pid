@@ -1,0 +1,48 @@
+`include "disciplines.h"
+
+module pid_controller(in1, in2, out1);
+ 
+input in1, in2;
+inout out1;
+electrical in1, in2, out1;
+parameter integer bypass = 0;
+parameter integer debug = 0;
+parameter real kp = 1;
+parameter real ki = 0;
+parameter real kd = 0;
+
+real last_time = 0;
+real cur_time = 0;
+real delta_time = 0;
+
+real err_value = 0;
+real last_err_value = 0;
+real integral = 0;
+real derivative = 0; 
+real control_value = 0;
+
+real v_in1 = 0;
+real v_in2 = 0;
+
+analog begin
+    if ( bypass == 1 ) begin : open_loop
+        V(out1) <+ V(in1);
+    end else begin : pid_controll
+        cur_time = $abstime;
+        delta_time = cur_time - last_time;
+        v_in1 = V(in1);
+        v_in2 = V(in2);
+        err_value = v_in1 - v_in2;
+        derivative  = ( err_value - last_err_value ) / delta_time;
+        integral = integral + ( err_value * delta_time );
+        control_value = kp * err_value + ki * integral + kd * derivative;
+        //$strobe("%4g(%g): in1=%g in2=%g kp*E=%g, ki*I=%g, kd*D=%g, control=%g", cur_time, delta_time, v_in1, v_in2, kp*err_value, ki*integral, kd*derivative, control_value);
+        V(out1)<+control_value;
+
+        last_time = cur_time;
+        last_err_value = err_value;
+    end
+end
+
+endmodule
+ 
